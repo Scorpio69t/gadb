@@ -183,6 +183,25 @@ func (d Device) EnableAdbOverTCP(port ...int) (err error) {
 	return
 }
 
+func (d Device) DisableAdbOverTCP(port ...int) (err error) {
+	if len(port) == 0 {
+		port = []int{AdbDaemonPort}
+	}
+
+	_, err = d.executeCommand(fmt.Sprintf("usb:%d", port[0]), true)
+	return
+}
+
+func (d Device) Root() (err error) {
+	_, err = d.executeCommand("root:", true)
+	return
+}
+
+func (d Device) Remount() (err error) {
+	_, err = d.executeCommand("remount:", true)
+	return
+}
+
 func (d Device) createDeviceTransport() (tp transport, err error) {
 	if tp, err = newTransport(fmt.Sprintf("%s:%d", d.adbClient.host, d.adbClient.port)); err != nil {
 		return transport{}, err

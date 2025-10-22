@@ -1,15 +1,19 @@
 package main
 
 import (
-	"github.com/electricbubble/gadb"
 	"log"
 	"os"
 	"strings"
+
+	"github.com/electricbubble/gadb"
 )
 
 func main() {
 	adbClient, err := gadb.NewClient()
 	checkErr(err, "fail to connect adb server")
+
+	err = adbClient.Connect("192.168.1.10", 5555)
+	checkErr(err, "fail to connect device over tcpip")
 
 	devices, err := adbClient.DeviceList()
 	checkErr(err)
@@ -19,6 +23,16 @@ func main() {
 	}
 
 	dev := devices[0]
+
+	err = dev.Root()
+	checkErr(err, "adb root")
+
+	log.Println("device rooted")
+
+	// whoami
+	shellOutput, err := dev.RunShellCommand("whoami")
+	checkErr(err, "whoami command")
+	log.Println("current user:", strings.TrimSpace(shellOutput))
 
 	userHomeDir, _ := os.UserHomeDir()
 	apk, err := os.Open(userHomeDir + "/Desktop/xuexi_android_10002068.apk")
@@ -34,7 +48,7 @@ func main() {
 
 	log.Println("starting to install apk")
 
-	shellOutput, err := dev.RunShellCommand("pm install", remotePath)
+	shellOutput, err = dev.RunShellCommand("pm install", remotePath)
 	checkErr(err, "pm install")
 	if !strings.Contains(shellOutput, "Success") {
 		log.Fatalln("fail to install: ", shellOutput)
